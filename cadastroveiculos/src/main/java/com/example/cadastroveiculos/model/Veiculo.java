@@ -16,9 +16,6 @@ public class Veiculo {
     private String modelo;
     private int ano;
 
-
-    // getters e setters
-
     public Long getId() {
         return id;
     }
@@ -58,4 +55,7 @@ public class Veiculo {
     public void setAno(int ano) {
         this.ano = ano;
     }
+
+
+    
 }
