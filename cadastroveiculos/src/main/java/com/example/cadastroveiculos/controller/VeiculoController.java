@@ -1,16 +1,38 @@
 package com.example.cadastroveiculos.controller;
+import com.example.cadastroveiculos.model.Fabricante;
 import com.example.cadastroveiculos.model.Veiculo;
+import com.example.cadastroveiculos.repository.FabricanteRepository;
 import com.example.cadastroveiculos.repository.VeiculoRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 import java.util.List;
+import org.springframework.dao.EmptyResultDataAccessException;
 import org.springframework.http.ResponseEntity;
-//@CrossOrigin(origins = "http://localhost:5173")//Endereço do front
+@CrossOrigin(origins = "http://localhost:5173") // Endereço do front
 @RestController
+
 @RequestMapping("/veiculos")
 public class VeiculoController {
+
     @Autowired
     private VeiculoRepository veiculoRepository;
+    
+    @Autowired
+    private FabricanteRepository fabricanteRepository;
+    
+    
+
+    @GetMapping("/fabricante/{nomeFabricante}")
+    public List<Veiculo> listarVeiculosPorNomeFabricante(@PathVariable String nomeFabricante) throws Exception {
+    Fabricante fabricante = fabricanteRepository.findByNome(nomeFabricante);
+
+
+    if (fabricante == null) {
+        throw new Exception("Fabricante não encontrado com o nome: " + nomeFabricante);
+    }
+    return veiculoRepository.findByFabricante(fabricante);
+}
+
     @GetMapping
     public List<Veiculo> listarVeiculos() {
         return veiculoRepository.findAll();
@@ -19,25 +41,26 @@ public class VeiculoController {
     public Veiculo criarVeiculo(@RequestBody Veiculo veiculo) {
         return veiculoRepository.save(veiculo);
     }
-     @DeleteMapping("/{id}")
-    public ResponseEntity<String> deletarVeiculo(@PathVariable Long id) {
-        if (veiculoRepository.existsById(id)) {
-            veiculoRepository.deleteById(id);
+    
+    @DeleteMapping("/{placa}")
+    public ResponseEntity<String> deletarVeiculo(@PathVariable String placa) {
+        try {
+            veiculoRepository.deleteById(placa);
             return ResponseEntity.ok("Veiculo deletado com sucesso.");
-        } else {
+        } catch (EmptyResultDataAccessException e) {
             return ResponseEntity.notFound().build();
         }
     }
-
-    @PutMapping("/{id}")
-    public ResponseEntity<Veiculo> atualizarVeiculo(@PathVariable Long id, @RequestBody Veiculo veiculoAtualizado) {
-        if (veiculoRepository.existsById(id)) {
-            Veiculo veiculo = veiculoRepository.findById(id).get();
+    @PutMapping("/{placa}")
+    public ResponseEntity<Veiculo> atualizarVeiculo(@PathVariable String placa, @RequestBody Veiculo veiculoAtualizado) {
+        if (veiculoRepository.existsById(placa)) {
+            Veiculo veiculo = veiculoRepository.findById(placa).get();
             veiculo.setPlaca(veiculoAtualizado.getPlaca());
-            veiculo.setMontadora(veiculoAtualizado.getMontadora());
+            veiculo.setCor(veiculoAtualizado.getCor());
+            veiculo.setFabricante(veiculoAtualizado.getFabricante());
             veiculo.setModelo(veiculoAtualizado.getModelo());
+            veiculo.setCategoria(veiculoAtualizado.getCategoria());
             veiculo.setAno(veiculoAtualizado.getAno());
-
             Veiculo veiculoAtualizadoBD = veiculoRepository.save(veiculo);
             return ResponseEntity.ok(veiculoAtualizadoBD);
         } else {
